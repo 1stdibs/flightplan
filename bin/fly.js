@@ -6,6 +6,7 @@ var Liftoff = require('liftoff')
   , semver = require('semver')
   , cliPackage = require('../package')
   , nopt = require('nopt')
+  , fs = require('fs')
   , format = require('util').format;
 
 var knownOptions = {
@@ -62,10 +63,21 @@ if(target && target.indexOf(':') !== -1) {
   target = target[1];
 }
 
+var flightplanVersion = '';
+
+if(fs.existsSync('./node_modules/dibs-flightplan')) {
+  console.log('Using DIBS version of flightplan');
+  flightplanVersion = 'dibs-flightplan';
+  if(!options.flightplan) { options.flightplan = 'flightplan.js'; }
+} else {
+  console.log('Using stock flightplan version');
+  flightplanVersion = 'flightplan';
+}
+
 var cli = new Liftoff({
-  name: 'flightplan',
+  name: 'dibs-flightplan',
   processTitle: 'Flightplan',
-  configName: 'flightplan',
+  configName: flightplanVersion,
   extensions: interpret.jsVariants,
   v8flags: v8flags
 });
@@ -77,6 +89,7 @@ cli.on('requireFail', function(name) {
 
 var invoke = function(env) {
 
+  console.log(env.configPath);
   if(!env.configPath) {
     process.stderr.write(format('Error: %s not found\n', (options.flightplan || 'flightplan.js')));
     process.exit(1);
